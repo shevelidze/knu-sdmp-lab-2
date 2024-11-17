@@ -53,13 +53,7 @@ const DbTab: React.FC = () => {
       return;
     }
 
-    try {
-      await coursesService.reset();
-    } catch (error) {
-      console.error("Error resetting data:", error);
-    }
-
-    console.log("Resetting data...");
+    await coursesService.reset();
 
     loadCourses();
     loadAllCourses();
