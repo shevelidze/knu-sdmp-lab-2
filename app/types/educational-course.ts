@@ -2,6 +2,8 @@ type EducationalCourseWithoutId = {
   name: string;
   lecturerName: string;
   buildingAddress: string;
+  buildingLatitude: number;
+  buildingLongitude: number;
   mark: number;
 };
 

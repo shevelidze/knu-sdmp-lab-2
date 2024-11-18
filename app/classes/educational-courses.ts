@@ -36,9 +36,18 @@ class EducationalCoursesService {
     return (result as any).averageMark;
   }
 
+  async findOneRandom(): Promise<EducationalCourse> {
+    const result = await this.db.getFirstAsync(
+      "SELECT * FROM educational_courses ORDER BY RANDOM() LIMIT 1"
+    );
+
+    return result as EducationalCourse;
+  }
+
   async createCourse(course: EducationalCourseWithoutId) {
     const statement = await this.db.prepareAsync(
-      `INSERT INTO educational_courses (name, lecturerName, buildingAddress, mark) VALUES ($name, $lecturerName, $buildingAddress, $mark)`
+      `INSERT INTO educational_courses (name, lecturerName, buildingAddress, mark, buildingLatitude, buildingLongitude)
+      VALUES ($name, $lecturerName, $buildingAddress, $mark, $buildingLatitude, $buildingLongitude)`
     );
 
     await statement.executeAsync({
@@ -46,6 +55,8 @@ class EducationalCoursesService {
       $lecturerName: course.lecturerName,
       $buildingAddress: course.buildingAddress,
       $mark: course.mark,
+      $buildingLatitude: course.buildingLatitude,
+      $buildingLongitude: course.buildingLongitude,
     });
   }
 
@@ -78,6 +89,8 @@ CREATE TABLE IF NOT EXISTS educational_courses (
   name TEXT NOT NULL,
   lecturerName TEXT NOT NULL,
   buildingAddress TEXT NOT NULL,
+  buildingLatitude REAL NOT NULL,
+  buildingLongitude REAL NOT NULL,
   mark INTEGER NOT NULL
 )`);
   }
@@ -94,10 +107,14 @@ CREATE TABLE IF NOT EXISTS educational_courses (
 
   private getSeedCourses(): EducationalCourseWithoutId[] {
     return this.getPossibleCourseNames().map((name) => {
+      const { latitude, longitude, address } = this.getRandomLocation();
+
       return {
         name,
         lecturerName: this.getRandomLecturerName(),
-        buildingAddress: this.getRandomAddress(),
+        buildingAddress: address,
+        buildingLatitude: latitude,
+        buildingLongitude: longitude,
         mark: this.getRandomMark(),
       };
     });
@@ -164,24 +181,80 @@ CREATE TABLE IF NOT EXISTS educational_courses (
     return possibleNames;
   }
 
-  private getRandomAddress(): string {
-    const possibleAddresses = [
-      "м. Київ, вул. Володимирська, 60",
-      "м. Київ, просп. Академіка Глушкова, 4-Е",
-      "м. Київ, вул. Васильківська, 90",
-      "м. Київ, просп. Академіка Глушкова, 2",
-      "м. Київ, вул. Богдана Гаврилишина, 24",
-      "м. Київ, просп. Академіка Глушкова, 4-Д",
-      "м. Київ, просп. Академіка Глушкова, 4-Г",
-      "м. Київ, вул. Льва Толстого, 14-А",
-      "м. Київ, вул. Драгоманова, 3",
-      "м. Київ, вул. Мельникова, 36/1",
-      "м. Київ, вул. Тарасівська, 16",
-      "м. Київ, вул. Васильківська, 36",
-      "м. Київ, вул. Симона Петлюри, 36",
+  private getRandomLocation(): {
+    latitude: number;
+    longitude: number;
+    address: string;
+  } {
+    const possibleLocations = [
+      {
+        address: "м. Київ, вул. Володимирська, 60",
+        latitude: 50.44205,
+        longitude: 30.51114,
+      },
+      {
+        address: "м. Київ, просп. Академіка Глушкова, 4-Е",
+        latitude: 50.38275,
+        longitude: 30.47538,
+      },
+      {
+        address: "м. Київ, вул. Васильківська, 90",
+        latitude: 50.39413,
+        longitude: 30.49274,
+      },
+      {
+        address: "м. Київ, просп. Академіка Глушкова, 2",
+        latitude: 50.38203,
+        longitude: 30.47034,
+      },
+      {
+        address: "м. Київ, вул. Богдана Гаврилишина, 24",
+        latitude: 50.46671,
+        longitude: 30.48444,
+      },
+      {
+        address: "м. Київ, просп. Академіка Глушкова, 4-Д",
+        latitude: 50.38301,
+        longitude: 30.47488,
+      },
+      {
+        address: "м. Київ, просп. Академіка Глушкова, 4-Г",
+        latitude: 50.38321,
+        longitude: 30.4751,
+      },
+      {
+        address: "м. Київ, вул. Льва Толстого, 14-А",
+        latitude: 50.43765,
+        longitude: 30.50599,
+      },
+      {
+        address: "м. Київ, вул. Драгоманова, 3",
+        latitude: 50.39628,
+        longitude: 30.61305,
+      },
+      {
+        address: "м. Київ, вул. Мельникова, 36/1",
+        latitude: 50.47079,
+        longitude: 30.45818,
+      },
+      {
+        address: "м. Київ, вул. Тарасівська, 16",
+        latitude: 50.43275,
+        longitude: 30.51214,
+      },
+      {
+        address: "м. Київ, вул. Васильківська, 36",
+        latitude: 50.40491,
+        longitude: 30.51873,
+      },
+      {
+        address: "м. Київ, вул. Симона Петлюри, 36",
+        latitude: 50.44041,
+        longitude: 30.49034,
+      },
     ];
 
-    return pickRandom(possibleAddresses);
+    return pickRandom(possibleLocations);
   }
 
   private db: Db;
